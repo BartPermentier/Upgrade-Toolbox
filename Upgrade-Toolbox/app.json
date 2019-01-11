@@ -1,0 +1,26 @@
+{
+  "id": "478bab58-f69d-4240-8f97-7313af009915",
+  "name": "Upgrade-Toolbox",
+  "publisher": "BPE",
+  "brief": "",
+  "description": "",
+  "version": "1.0.0.0",
+  "privacyStatement": "",
+  "EULA": "",
+  "help": "",
+  "url": "",
+  "logo": "",
+  "capabilities": [],
+  "dependencies": [],
+  "screenshots": [],
+  "platform": "13.0.0.0",
+  "application": "13.0.0.0",
+  "idRange": {
+    "from": 54000,
+    "to": 55000
+  },
+  "runtime": "2.1",
+  "features": ["TranslationFile"],
+  "showMyCode": true,
+  "target": "Internal"
+}
