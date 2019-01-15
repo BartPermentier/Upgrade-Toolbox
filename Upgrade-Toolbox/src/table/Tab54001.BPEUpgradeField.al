@@ -80,6 +80,20 @@ table 54001 "BPE Upgrade Field"
             Caption = 'Origin Disabled';
             DataClassification = SystemMetadata;
         }
+        field(53; "New Field Name"; Text[50])
+        {
+            Caption = 'New Field Name';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = lookup (Field.FieldName where (TableNo = field (NewTableNo), "No." = field (NewFieldNo)));
+        }
+        field(54; "Original Field Name"; Text[50])
+        {
+            Caption = 'Original Field Name';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = lookup (Field.FieldName where (TableNo = field (OriginalTableNo), "No." = field (OriginalFieldNo)));
+        }
 
 
     }

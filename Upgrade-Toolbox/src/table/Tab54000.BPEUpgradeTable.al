@@ -61,6 +61,20 @@ table 54000 "BPE Upgrade Table"
             FieldClass = FlowField;
             CalcFormula = count ("BPE Upgrade Field" where (NewTableNo = field ("New Table No."), "Upgrade Method" = filter (Skip)));
         }
+        field(54; "New Table Name"; Text[50])
+        {
+            Caption = 'New Table Name';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = lookup (AllObjWithCaption."Object Caption" where ("Object ID" = field ("Original Table No.")));
+        }
+        field(55; "Original Table Name"; Text[50])
+        {
+            Caption = 'Original Table Name';
+            Editable = false;
+            FieldClass = FlowField;
+            CalcFormula = lookup (AllObjWithCaption."Object Name" where ("Object ID" = field ("Original Table No.")));
+        }
         field(800; "Prefix/Sufix"; Code[5])
         {
             Caption = 'Prefix/Sufix';
@@ -87,6 +101,7 @@ table 54000 "BPE Upgrade Table"
         ExtensionManagement: Page "Extension Management";
         PrefixSufix: Code[5];
     begin
+        Reset();
         ExtensionManagement.LookupMode(true);
         if ExtensionManagement.RunModal() = Action::LookupOK then begin
             ExtensionManagement.GetRecord(NAVApp);
@@ -347,6 +362,85 @@ table 54000 "BPE Upgrade Table"
     //#endregion GetNoOfDatabaseRecordsNewTable
 
     //Create SQL Statement
+    //#region CreateSqlStatementForRecordSet
+    procedure CreateSqlStatementForRecordSet();
+    var
+        Company: Record Company;
+        ActiveSession: Record "Active Session";
+        UpgradeField: Record "BPE Upgrade Field";
+        FileManagement: Codeunit "File Management";
+        Companies: Page Companies;
+        SqlScriptOutstream: OutStream;
+        SqlScriptFile: File;
+        DatabaseName: Text;
+        FullFilePath: Text;
+        From: Text;
+        cr: Char;
+        lf: Char;
+    begin
+        //Ask for which Company
+        Companies.LookupMode(true);
+        if not (Companies.RunModal() = Action::LookupOK) then
+            exit;
+        Companies.GetSelectedCompanies(Company);
+
+        //Ask File Location
+        FullFilePath := FileManagement.SaveFileDialog('Create SQL Statement', '', '(Sql files)|*.sql');
+        SqlScriptFile.Create(FullFilePath);
+        SqlScriptFile.CreateOutStream(SqlScriptOutstream);
+
+        //Set Defaults
+        UpgradeField.SetRange("Upgrade Method", UpgradeField."Upgrade Method"::Transfer);
+        UpgradeField.SetAutoCalcFields("Original Field Name", "New Field Name");
+        SetAutoCalcFields("Original Table Name", "New Table Name");
+        SetRange("Upgrade Method", "Upgrade Method"::Transfer);
+        cr := 13;
+        lf := 10;
+        ActiveSession.FindFirst();
+        DatabaseName := ActiveSession."Database Name";
+
+        SqlScriptOutstream.WriteText('test1');
+        SqlScriptOutstream.WriteText(format(cr) + format(lf));
+        SqlScriptOutstream.WriteText('test2');
+
+        //Start
+
+        Company.FindSet();
+        repeat
+            FindSet();
+            repeat
+                UpgradeField.SetRange(NewTableNo, "New Table No.");
+
+                if UpgradeField.FindSet() then begin
+                    if "Original Table No." = "New Table No." then
+                        From := '[' + DatabaseName + '].[dbo].[' + Company.Name + '$' + "New Table Name" + '$' + AppId + ']' //TableExtension
+                    else
+                        From := '[' + DatabaseName + '].[dbo].[' + Company.Name + '$' + "New Table Name" + ']'; //Table
+                    SqlScriptOutstream.WriteText(From);
+                    SqlScriptOutstream.WriteText(format(cr) + format(lf));
+                    SqlScriptOutstream.WriteText('SET');
+                    repeat
+                        SqlScriptOutstream.WriteText(format(cr) + format(lf));
+                        SqlScriptOutstream.WriteText(UpgradeField."New Field Name" + ' = ' + UpgradeField."Original Field Name");
+                    until UpgradeField.Next() = 0;
+                    SqlScriptOutstream.WriteText(format(cr) + format(lf));
+                    SqlScriptOutstream.WriteText('FROM');
+                    SqlScriptOutstream.WriteText(format(cr) + format(lf));
+                    SqlScriptOutstream.WriteText(From + ' t');
+                    SqlScriptOutstream.WriteText(format(cr) + format(lf));
+                    SqlScriptOutstream.WriteText('INNER JOIN');
+                    SqlScriptOutstream.WriteText(format(cr) + format(lf));
+                    SqlScriptOutstream.WriteText('[' + DatabaseName + '].[dbo].[' + Company.Name + '$' + "Original Table Name" + ']' + ' t2');
+                    SqlScriptOutstream.WriteText(format(cr) + format(lf));
+                    SqlScriptOutstream.WriteText('ON');
+                    SqlScriptOutstream.WriteText(format(cr) + format(lf));
+
+
+                end;
+            until Next() = 0;
+        until Company.Next() = 0;
+    end;
+    //#endregion CreateSqlStatementForRecordSet
     //     UPDATE
     //     [NAV100_BE_Chabert_BC].[dbo].[Stanley and Stella SA$Sales Invoice Header$9acfa8a0-7159-4791-a575-884a741a2384]
     // SET

@@ -103,6 +103,15 @@ page 54000 "BPE Upgrade Table List"
                     ProgressBarMgt.CloseProgressBar();
                 end;
             }
+            action(CreateSQLStatement)
+            {
+                ApplicationArea = All;
+                Caption = 'Create SQL Statement';
+                trigger OnAction()
+                begin
+                    CreateSqlStatementForRecordSet();
+                end;
+            }
         }
 
     }
