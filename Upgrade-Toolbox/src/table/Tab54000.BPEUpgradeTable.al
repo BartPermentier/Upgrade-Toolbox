@@ -37,15 +37,17 @@ table 54000 "BPE Upgrade Table"
         {
             Caption = 'New Table Caption';
             Editable = false;
-            FieldClass = FlowField;
-            CalcFormula = lookup (AllObjWithCaption."Object Caption" where ("Object ID" = field ("New Table No.")));
+            DataClassification = SystemMetadata;
+            // FieldClass = FlowField;
+            // CalcFormula = lookup (AllObjWithCaption."Object Caption" where ("Object ID" = field ("New Table No.")));
         }
         field(51; "Original Table Caption"; Text[50])
         {
-            Caption = 'New Table Caption';
+            Caption = 'Original Table Caption';
             Editable = false;
-            FieldClass = FlowField;
-            CalcFormula = lookup (AllObjWithCaption."Object Caption" where ("Object ID" = field ("Original Table No.")));
+            DataClassification = SystemMetadata;
+            // FieldClass = FlowField;
+            // CalcFormula = lookup (AllObjWithCaption."Object Caption" where ("Object ID" = field ("Original Table No.")));
         }
         field(52; "No. of Upgrade Fields"; Integer)
         {
@@ -65,15 +67,17 @@ table 54000 "BPE Upgrade Table"
         {
             Caption = 'New Table Name';
             Editable = false;
-            FieldClass = FlowField;
-            CalcFormula = lookup (AllObjWithCaption."Object Caption" where ("Object ID" = field ("Original Table No.")));
+            DataClassification = SystemMetadata;
+            // FieldClass = FlowField;
+            // CalcFormula = lookup (AllObjWithCaption."Object Caption" where ("Object ID" = field ("Original Table No.")));
         }
         field(55; "Original Table Name"; Text[50])
         {
             Caption = 'Original Table Name';
             Editable = false;
-            FieldClass = FlowField;
-            CalcFormula = lookup (AllObjWithCaption."Object Name" where ("Object ID" = field ("Original Table No.")));
+            DataClassification = SystemMetadata;
+            // FieldClass = FlowField;
+            // CalcFormula = lookup (AllObjWithCaption."Object Name" where ("Object ID" = field ("Original Table No.")));
         }
         field(800; "Prefix/Sufix"; Code[5])
         {
@@ -115,16 +119,16 @@ table 54000 "BPE Upgrade Table"
             repeat
                 case NAVAppObjectMetadata."Object Type" of
                     NAVAppObjectMetadata."Object Type"::Table:
-                        HandleTable(NAVAppObjectMetadata, PrefixSufix);
+                        HandleTable(NAVAppObjectMetadata, PrefixSufix, NAVApp.ID);
                     NAVAppObjectMetadata."Object Type"::TableExtension:
-                        HandleTableExtension(NAVAppObjectMetadata, PrefixSufix);
+                        HandleTableExtension(NAVAppObjectMetadata, PrefixSufix, NAVApp.ID);
                 end;
             until NAVAppObjectMetadata.Next() = 0;
         end;
     end;
     //#endregion GenerateUpgradeTable
     //#region HandleTable
-    local procedure HandleTable(var NAVAppObjectMetadata: Record "NAV App Object Metadata"; PrefixSufix: Code[5]);
+    local procedure HandleTable(var NAVAppObjectMetadata: Record "NAV App Object Metadata"; PrefixSufix: Code[5]; NavAppId: Guid);
     var
         AllObjWithCaption: Record AllObjWithCaption;
         OldFieldTable: Record Field;
@@ -134,7 +138,8 @@ table 54000 "BPE Upgrade Table"
     begin
         Init();
         "New Table No." := NAVAppObjectMetadata."Object ID";
-        AppId := NAVAppObjectMetadata."App Package ID";
+        "New Table Name" := NAVAppObjectMetadata."Object Name";
+        AppId := NavAppId;
         "Upgrade Method" := "Upgrade Method"::Transfer;
         if not Insert() then
             Modify();
@@ -152,6 +157,7 @@ table 54000 "BPE Upgrade Table"
                 NewTableCaption := NewTableCaption.TrimEnd('_');
                 NewTableCaption := NewTableCaption.TrimEnd(' ');
             end;
+            "New Table Caption" := AllObjWithCaption."Object Caption";
 
         end;
 
@@ -163,7 +169,8 @@ table 54000 "BPE Upgrade Table"
         if AllObjWithCaption.FindLast() then begin
             //Original table found
             "Original Table No." := AllObjWithCaption."Object ID";
-
+            "Original Table Name" := AllObjWithCaption."Object Name";
+            "Original Table Caption" := AllObjWithCaption."Object Caption";
             //Loop through upgrade fields
             UpgradeField.SetRange(NewTableNo, "New Table No.");
             UpgradeField.FindSet();
@@ -203,11 +210,12 @@ table 54000 "BPE Upgrade Table"
     end;
     //#endregion HandleTable
     //#region HandleTableExtension
-    local procedure HandleTableExtension(var NAVAppObjectMetadata: Record "NAV App Object Metadata"; PreOrSufix: Code[5]);
+    local procedure HandleTableExtension(var NAVAppObjectMetadata: Record "NAV App Object Metadata"; PreOrSufix: Code[5]; NavAppId: Guid);
     var
         NewFieldTable: Record Field;
         OldFieldTable: Record Field;
         UpgradeField: Record "BPE Upgrade Field";
+        AllObjWithCaption: Record AllObjWithCaption;
         TableNo: Integer;
     begin
         Evaluate(TableNo, NAVAppObjectMetadata."Object Subtype");
@@ -219,11 +227,19 @@ table 54000 "BPE Upgrade Table"
         NewFieldTable.SetFilter("No.", '>=%1', 50000);
         NewFieldTable.SetFilter(FieldName, '%1|%2', '*' + PreOrSufix, PreOrSufix + '*');
         NewFieldTable.SetRange(Class, NewFieldTable.Class::Normal);
+        NewFieldTable.SetRange(Enabled, true);
         if NewFieldTable.FindSet() then begin
             Init();
             "New Table No." := TableNo;
             "Original Table No." := TableNo;
-            AppId := NAVAppObjectMetadata."App Package ID";
+            AllObjWithCaption.SetRange("Object ID", TableNo);
+            AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Table);
+            AllObjWithCaption.FindFirst();
+            "New Table Caption" := AllObjWithCaption."Object Caption";
+            "New Table Name" := AllObjWithCaption."Object Name";
+            "Original Table Caption" := AllObjWithCaption."Object Caption";
+            "Original Table Name" := AllObjWithCaption."Object Name";
+            AppId := NavAppId;
             "Upgrade Method" := "Upgrade Method"::Transfer;
             if not Insert() then
                 Modify();
@@ -370,13 +386,19 @@ table 54000 "BPE Upgrade Table"
         UpgradeField: Record "BPE Upgrade Field";
         FileManagement: Codeunit "File Management";
         Companies: Page Companies;
+        RecRef: RecordRef;
+        FldRef: FieldRef;
         SqlScriptOutstream: OutStream;
         SqlScriptFile: File;
+        PrimaryKeyRef: KeyRef;
         DatabaseName: Text;
         FullFilePath: Text;
         From: Text;
+        On: Text;
         cr: Char;
         lf: Char;
+        i: Integer;
+        FirstLine: Boolean;
     begin
         //Ask for which Company
         Companies.LookupMode(true);
@@ -391,20 +413,16 @@ table 54000 "BPE Upgrade Table"
 
         //Set Defaults
         UpgradeField.SetRange("Upgrade Method", UpgradeField."Upgrade Method"::Transfer);
+        UpgradeField.SetRange("Origin Disabled", false);
         UpgradeField.SetAutoCalcFields("Original Field Name", "New Field Name");
-        SetAutoCalcFields("Original Table Name", "New Table Name");
         SetRange("Upgrade Method", "Upgrade Method"::Transfer);
         cr := 13;
         lf := 10;
+        ActiveSession.SetRange("Session ID", SessionId());
         ActiveSession.FindFirst();
         DatabaseName := ActiveSession."Database Name";
 
-        SqlScriptOutstream.WriteText('test1');
-        SqlScriptOutstream.WriteText(format(cr) + format(lf));
-        SqlScriptOutstream.WriteText('test2');
-
         //Start
-
         Company.FindSet();
         repeat
             FindSet();
@@ -412,16 +430,19 @@ table 54000 "BPE Upgrade Table"
                 UpgradeField.SetRange(NewTableNo, "New Table No.");
 
                 if UpgradeField.FindSet() then begin
-                    if "Original Table No." = "New Table No." then
-                        From := '[' + DatabaseName + '].[dbo].[' + Company.Name + '$' + "New Table Name" + '$' + AppId + ']' //TableExtension
-                    else
-                        From := '[' + DatabaseName + '].[dbo].[' + Company.Name + '$' + "New Table Name" + ']'; //Table
+                    SqlScriptOutstream.WriteText('UPDATE');
+                    SqlScriptOutstream.WriteText(format(cr) + format(lf));
+                    From := '[' + DatabaseName + '].[dbo].[' + Company.Name + '$' + ReplaceIlligalSqlCharacters("New Table Name") + '$' + delchr(delchr(AppId, '<', '{'), '>', '}') + ']'; //TableExtension
                     SqlScriptOutstream.WriteText(From);
                     SqlScriptOutstream.WriteText(format(cr) + format(lf));
                     SqlScriptOutstream.WriteText('SET');
+                    FirstLine := true;
                     repeat
                         SqlScriptOutstream.WriteText(format(cr) + format(lf));
-                        SqlScriptOutstream.WriteText(UpgradeField."New Field Name" + ' = ' + UpgradeField."Original Field Name");
+                        if not FirstLine then
+                            SqlScriptOutstream.WriteText(',');
+                        SqlScriptOutstream.WriteText('[' + ReplaceIlligalSqlCharacters(UpgradeField."New Field Name") + '] = t2.[' + ReplaceIlligalSqlCharacters(UpgradeField."Original Field Name") + ']');
+                        FirstLine := false;
                     until UpgradeField.Next() = 0;
                     SqlScriptOutstream.WriteText(format(cr) + format(lf));
                     SqlScriptOutstream.WriteText('FROM');
@@ -430,17 +451,37 @@ table 54000 "BPE Upgrade Table"
                     SqlScriptOutstream.WriteText(format(cr) + format(lf));
                     SqlScriptOutstream.WriteText('INNER JOIN');
                     SqlScriptOutstream.WriteText(format(cr) + format(lf));
-                    SqlScriptOutstream.WriteText('[' + DatabaseName + '].[dbo].[' + Company.Name + '$' + "Original Table Name" + ']' + ' t2');
+                    SqlScriptOutstream.WriteText('[' + DatabaseName + '].[dbo].[' + Company.Name + '$' + ReplaceIlligalSqlCharacters("Original Table Name") + ']' + ' t2');
                     SqlScriptOutstream.WriteText(format(cr) + format(lf));
                     SqlScriptOutstream.WriteText('ON');
                     SqlScriptOutstream.WriteText(format(cr) + format(lf));
-
+                    //Find the key and add it to the statement
+                    On := '';
+                    RecRef.Open("Original Table No.");
+                    PrimaryKeyRef := RecRef.KeyIndex(1);
+                    for i := 1 to PrimaryKeyRef.FieldCount() do begin
+                        FldRef := PrimaryKeyRef.FieldIndex(i);
+                        if On <> '' then
+                            On += ' and ';
+                        On += 't2.[' + ReplaceIlligalSqlCharacters(FldRef.Name()) + '] = t.[' + ReplaceIlligalSqlCharacters(FldRef.Name() + ']');
+                    end;
+                    RecRef.Close();
+                    SqlScriptOutstream.WriteText(On);
+                    SqlScriptOutstream.WriteText(format(cr) + format(lf));
 
                 end;
             until Next() = 0;
         until Company.Next() = 0;
     end;
     //#endregion CreateSqlStatementForRecordSet
+    //#region ReplaceIlligalSqlCharacters
+    local procedure ReplaceIlligalSqlCharacters(FieldName: Text) SqlFieldName: Text;
+    begin
+        SqlFieldName := FieldName.Replace('.', '_');
+        SqlFieldName := SqlFieldName.Replace('%', '_');
+        SqlFieldName := SqlFieldName.Replace('/', '_');
+    end;
+    //#endregion ReplaceIlligalSqlCharacters
     //     UPDATE
     //     [NAV100_BE_Chabert_BC].[dbo].[Stanley and Stella SA$Sales Invoice Header$9acfa8a0-7159-4791-a575-884a741a2384]
     // SET
@@ -451,4 +492,46 @@ table 54000 "BPE Upgrade Table"
     //     [NAV100_BE_Chabert_BC].[dbo].[Stanley and Stella SA$Sales Invoice Header] t2
     // ON 
     //     t2.No_ = t.No_
+
+
+    //     INSERT INTO
+    // [NAV100_BE_Chabert_BC].[dbo].[Stanley and Stella SA$STST_Matrix Entity$9ACFA8A0-7159-4791-A575-884A741A2384]
+    // --SET
+    // (
+    // [Type]
+    // ,[Code]
+    // ,[Description]
+    // ,[Hex Code]
+    // ,[Cyan]
+    // ,[Magenta]
+    // ,[Yellow]
+    // ,[Key]
+    // ,[Order]
+    // ,[Matrix Group]
+    // ,[Matrix Group Value]
+    // ,[Color Group]
+    // ,[Layout Size]
+    // ,[Starting Date]
+    // ,[Ending Date]
+    // ,[New Color]
+    // )
+    // select
+    // [Type]
+    // ,[Code]
+    // ,[Description]
+    // ,[Hex Code]
+    // ,[Cyan]
+    // ,[Magenta]
+    // ,[Yellow]
+    // ,[Key]
+    // ,[Order]
+    // ,[Matrix Group]
+    // ,[Matrix Group Value]
+    // ,[Color Group]
+    // ,[Layout Size]
+    // ,[Starting Date]
+    // ,[Ending Date]
+    // ,[New Color]
+    // FROM
+    // [NAV100_BE_Chabert_BC].[dbo].[Stanley and Stella SA$Matrix Entity] t2
 }

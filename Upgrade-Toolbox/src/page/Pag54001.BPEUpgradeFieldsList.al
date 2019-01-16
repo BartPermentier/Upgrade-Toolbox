@@ -26,6 +26,11 @@ page 54001 "BPE Upgrade Fields List"
                 {
                     ApplicationArea = All;
                 }
+                field("New Field Name"; "New Field Name")
+                {
+                    ApplicationArea = All;
+                }
+
                 field("OriginalTableNo"; "OriginalTableNo")
                 {
                     ApplicationArea = All;
@@ -39,6 +44,11 @@ page 54001 "BPE Upgrade Fields List"
                 {
                     ApplicationArea = All;
                 }
+                field("Original Field Name"; "Original Field Name")
+                {
+                    ApplicationArea = All;
+                }
+
                 field("Action"; "Upgrade Method")
                 {
                     ApplicationArea = All;

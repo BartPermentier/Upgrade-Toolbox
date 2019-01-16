@@ -104,6 +104,9 @@ table 54001 "BPE Upgrade Field"
         {
             Clustered = true;
         }
+        key(UpgradeMethod; "Upgrade Method")
+        {
+        }
     }
 
 }

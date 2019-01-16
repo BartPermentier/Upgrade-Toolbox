@@ -34,7 +34,7 @@
           <note from="Xliff Generator" annotates="general" priority="3">Table BPE Upgrade Table - Field New Table Caption - Property Caption</note>
         </trans-unit>
         <trans-unit id="Table 3926941043 - Field 3726825099 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
-          <source>New Table Caption</source>
+          <source>Original Table Caption</source>
           <note from="Developer" annotates="general" priority="2"></note>
           <note from="Xliff Generator" annotates="general" priority="3">Table BPE Upgrade Table - Field Original Table Caption - Property Caption</note>
         </trans-unit>
