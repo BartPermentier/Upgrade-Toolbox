@@ -135,6 +135,7 @@ table 54000 "BPE Upgrade Table"
         OldFieldTable: Record Field;
         NewFieldTable: Record Field;
         UpgradeField: Record "BPE Upgrade Field";
+        Object: Record Object;
         NewTableCaption: Text;
     begin
         Init();
@@ -165,13 +166,14 @@ table 54000 "BPE Upgrade Table"
         CreateUpgradeFields(UpgradeField, "New Table No.");
 
         //Search Original Table via Caption
-        AllObjWithCaption.Setfilter("Object ID", '<>%1', "New Table No.");
-        AllObjWithCaption.SetRange("Object Caption", NewTableCaption);
-        if AllObjWithCaption.FindLast() then begin
+        Object.Setfilter("ID", '<>%1', "New Table No.");
+        Object.SetRange("Caption", NewTableCaption);
+        Object.SetRange(Compiled, true);
+        if Object.FindLast() then begin
             //Original table found
-            "Original Table No." := AllObjWithCaption."Object ID";
-            "Original Table Name" := AllObjWithCaption."Object Name";
-            "Original Table Caption" := AllObjWithCaption."Object Caption";
+            "Original Table No." := Object.ID;
+            "Original Table Name" := Object.Name;
+            "Original Table Caption" := Object.Caption;
             //Loop through upgrade fields
             UpgradeField.SetRange(NewTableNo, "New Table No.");
             UpgradeField.FindSet();
