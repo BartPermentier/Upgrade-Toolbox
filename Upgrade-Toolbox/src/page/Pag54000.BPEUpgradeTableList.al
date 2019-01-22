@@ -58,10 +58,6 @@ page 54000 "BPE Upgrade Table List"
                     ApplicationArea = All;
                     Editable = false;
                 }
-
-
-
-
             }
         }
     }

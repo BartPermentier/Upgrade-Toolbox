@@ -110,6 +110,7 @@ table 54000 "BPE Upgrade Table"
         if ExtensionManagement.RunModal() = Action::LookupOK then begin
             ExtensionManagement.GetRecord(NAVApp);
             //Get Prefix/Sufix
+
             PrefixSufix := CopyStr(ProgressBarMgt.RequestNewValueForAField(Rec, Rec.FieldNo("Prefix/Sufix"), ''), 1, MaxStrLen(PrefixSufix));
 
             //Get all Tables and tableExtensions
@@ -287,6 +288,7 @@ table 54000 "BPE Upgrade Table"
 
         //Create Upgrade fields
         NewFieldTable.SetRange(TableNo, NewTableNo);
+        NewFieldTable.SetRange(Class, NewFieldTable.Class::Normal);
         NewFieldTable.FindSet();
         repeat
             UpgradeField.Init();
@@ -394,11 +396,13 @@ table 54000 "BPE Upgrade Table"
         DatabaseName: Text;
         FullFilePath: Text;
         From: Text;
+        InsertInto: Text;
         On: Text;
         cr: Char;
         lf: Char;
         i: Integer;
         FirstLine: Boolean;
+        IsTableExtension: Boolean;
     begin
         //Ask for which Company
         Companies.LookupMode(true);
@@ -427,49 +431,84 @@ table 54000 "BPE Upgrade Table"
         repeat
             FindSet();
             repeat
+                IsTableExtension := "Original Table No." = "New Table No.";
                 UpgradeField.SetRange(NewTableNo, "New Table No.");
 
-                if UpgradeField.FindSet() then begin
-                    SqlScriptOutstream.WriteText('UPDATE');
-                    SqlScriptOutstream.WriteText(format(cr) + format(lf));
-                    From := '[' + DatabaseName + '].[dbo].[' + Company.Name + '$' + ReplaceIlligalSqlCharacters("New Table Name") + '$' + delchr(delchr(AppId, '<', '{'), '>', '}') + ']'; //TableExtension
-                    SqlScriptOutstream.WriteText(From);
-                    SqlScriptOutstream.WriteText(format(cr) + format(lf));
-                    SqlScriptOutstream.WriteText('SET');
-                    FirstLine := true;
-                    repeat
+                if UpgradeField.FindSet() then
+                    if IsTableExtension then begin
+                        SqlScriptOutstream.WriteText('UPDATE');
                         SqlScriptOutstream.WriteText(format(cr) + format(lf));
-                        if not FirstLine then
-                            SqlScriptOutstream.WriteText(',');
-                        SqlScriptOutstream.WriteText('[' + ReplaceIlligalSqlCharacters(UpgradeField."New Field Name") + '] = t2.[' + ReplaceIlligalSqlCharacters(UpgradeField."Original Field Name") + ']');
-                        FirstLine := false;
-                    until UpgradeField.Next() = 0;
-                    SqlScriptOutstream.WriteText(format(cr) + format(lf));
-                    SqlScriptOutstream.WriteText('FROM');
-                    SqlScriptOutstream.WriteText(format(cr) + format(lf));
-                    SqlScriptOutstream.WriteText(From + ' t');
-                    SqlScriptOutstream.WriteText(format(cr) + format(lf));
-                    SqlScriptOutstream.WriteText('INNER JOIN');
-                    SqlScriptOutstream.WriteText(format(cr) + format(lf));
-                    SqlScriptOutstream.WriteText('[' + DatabaseName + '].[dbo].[' + Company.Name + '$' + ReplaceIlligalSqlCharacters("Original Table Name") + ']' + ' t2');
-                    SqlScriptOutstream.WriteText(format(cr) + format(lf));
-                    SqlScriptOutstream.WriteText('ON');
-                    SqlScriptOutstream.WriteText(format(cr) + format(lf));
-                    //Find the key and add it to the statement
-                    On := '';
-                    RecRef.Open("Original Table No.");
-                    PrimaryKeyRef := RecRef.KeyIndex(1);
-                    for i := 1 to PrimaryKeyRef.FieldCount() do begin
-                        FldRef := PrimaryKeyRef.FieldIndex(i);
-                        if On <> '' then
-                            On += ' and ';
-                        On += 't2.[' + ReplaceIlligalSqlCharacters(FldRef.Name()) + '] = t.[' + ReplaceIlligalSqlCharacters(FldRef.Name() + ']');
-                    end;
-                    RecRef.Close();
-                    SqlScriptOutstream.WriteText(On);
-                    SqlScriptOutstream.WriteText(format(cr) + format(lf));
+                        From := '[' + DatabaseName + '].[dbo].[' + Company.Name + '$' + ReplaceIlligalSqlCharacters("New Table Name") + '$' + delchr(delchr(AppId, '<', '{'), '>', '}') + ']'; //TableExtension
+                        SqlScriptOutstream.WriteText(From);
+                        SqlScriptOutstream.WriteText(format(cr) + format(lf));
+                        SqlScriptOutstream.WriteText('SET');
+                        FirstLine := true;
+                        repeat
+                            SqlScriptOutstream.WriteText(format(cr) + format(lf));
+                            if not FirstLine then
+                                SqlScriptOutstream.WriteText(',');
+                            SqlScriptOutstream.WriteText('[' + ReplaceIlligalSqlCharacters(UpgradeField."New Field Name") + '] = t2.[' + ReplaceIlligalSqlCharacters(UpgradeField."Original Field Name") + ']');
+                            FirstLine := false;
+                        until UpgradeField.Next() = 0;
+                        SqlScriptOutstream.WriteText(format(cr) + format(lf));
+                        SqlScriptOutstream.WriteText('FROM');
+                        SqlScriptOutstream.WriteText(format(cr) + format(lf));
+                        SqlScriptOutstream.WriteText(From + ' t');
+                        SqlScriptOutstream.WriteText(format(cr) + format(lf));
+                        SqlScriptOutstream.WriteText('INNER JOIN');
+                        SqlScriptOutstream.WriteText(format(cr) + format(lf));
+                        SqlScriptOutstream.WriteText('[' + DatabaseName + '].[dbo].[' + Company.Name + '$' + ReplaceIlligalSqlCharacters("Original Table Name") + ']' + ' t2');
+                        SqlScriptOutstream.WriteText(format(cr) + format(lf));
+                        SqlScriptOutstream.WriteText('ON');
+                        SqlScriptOutstream.WriteText(format(cr) + format(lf));
+                        //Find the key and add it to the statement
+                        On := '';
+                        RecRef.Open("Original Table No.");
+                        PrimaryKeyRef := RecRef.KeyIndex(1);
+                        for i := 1 to PrimaryKeyRef.FieldCount() do begin
+                            FldRef := PrimaryKeyRef.FieldIndex(i);
+                            if On <> '' then
+                                On += ' and ';
+                            On += 't2.[' + ReplaceIlligalSqlCharacters(FldRef.Name()) + '] = t.[' + ReplaceIlligalSqlCharacters(FldRef.Name() + ']');
+                        end;
+                        RecRef.Close();
+                        SqlScriptOutstream.WriteText(On);
+                        SqlScriptOutstream.WriteText(format(cr) + format(lf));
+                    end else begin //not a table extension
+                        SqlScriptOutstream.WriteText('INSERT INTO');
+                        SqlScriptOutstream.WriteText(format(cr) + format(lf));
+                        InsertInto := '[' + DatabaseName + '].[dbo].[' + Company.Name + '$' + ReplaceIlligalSqlCharacters("New Table Name") + '$' + delchr(delchr(AppId, '<', '{'), '>', '}') + ']'; //TableExtension
+                        SqlScriptOutstream.WriteText(InsertInto);
+                        SqlScriptOutstream.WriteText(format(cr) + format(lf));
+                        SqlScriptOutstream.WriteText('(');
+                        FirstLine := true;
+                        repeat
+                            SqlScriptOutstream.WriteText(format(cr) + format(lf));
+                            if not FirstLine then
+                                SqlScriptOutstream.WriteText(',');
+                            SqlScriptOutstream.WriteText('[' + ReplaceIlligalSqlCharacters(UpgradeField."New Field Name") + ']');
+                            FirstLine := false;
+                        until UpgradeField.Next() = 0;
+                        SqlScriptOutstream.WriteText(format(cr) + format(lf));
+                        SqlScriptOutstream.WriteText(')');
+                        SqlScriptOutstream.WriteText(format(cr) + format(lf));
+                        SqlScriptOutstream.WriteText('SELECT');
 
-                end;
+                        FirstLine := true;
+                        UpgradeField.FindSet();
+                        repeat
+                            SqlScriptOutstream.WriteText(format(cr) + format(lf));
+                            if not FirstLine then
+                                SqlScriptOutstream.WriteText(',');
+                            SqlScriptOutstream.WriteText('[' + ReplaceIlligalSqlCharacters(UpgradeField."Original Field Name") + ']');
+                            FirstLine := false;
+                        until UpgradeField.Next() = 0;
+                        SqlScriptOutstream.WriteText(format(cr) + format(lf));
+                        SqlScriptOutstream.WriteText('FROM');
+                        SqlScriptOutstream.WriteText(format(cr) + format(lf));
+                        SqlScriptOutstream.WriteText('[' + DatabaseName + '].[dbo].[' + Company.Name + '$' + ReplaceIlligalSqlCharacters("Original Table Name") + ']' + ' t');
+                        SqlScriptOutstream.WriteText(format(cr) + format(lf));
+                    end; //end table or tableextension
             until Next() = 0;
         until Company.Next() = 0;
     end;
@@ -482,56 +521,4 @@ table 54000 "BPE Upgrade Table"
         SqlFieldName := SqlFieldName.Replace('/', '_');
     end;
     //#endregion ReplaceIlligalSqlCharacters
-    //     UPDATE
-    //     [NAV100_BE_Chabert_BC].[dbo].[Stanley and Stella SA$Sales Invoice Header$9acfa8a0-7159-4791-a575-884a741a2384]
-    // SET
-    //     [STST OGM] = t2.[OGM]
-    // FROM
-    //     [NAV100_BE_Chabert_BC].[dbo].[Stanley and Stella SA$Sales Invoice Header$9acfa8a0-7159-4791-a575-884a741a2384] t
-    // INNER JOIN
-    //     [NAV100_BE_Chabert_BC].[dbo].[Stanley and Stella SA$Sales Invoice Header] t2
-    // ON 
-    //     t2.No_ = t.No_
-
-
-    //     INSERT INTO
-    // [NAV100_BE_Chabert_BC].[dbo].[Stanley and Stella SA$STST_Matrix Entity$9ACFA8A0-7159-4791-A575-884A741A2384]
-    // --SET
-    // (
-    // [Type]
-    // ,[Code]
-    // ,[Description]
-    // ,[Hex Code]
-    // ,[Cyan]
-    // ,[Magenta]
-    // ,[Yellow]
-    // ,[Key]
-    // ,[Order]
-    // ,[Matrix Group]
-    // ,[Matrix Group Value]
-    // ,[Color Group]
-    // ,[Layout Size]
-    // ,[Starting Date]
-    // ,[Ending Date]
-    // ,[New Color]
-    // )
-    // select
-    // [Type]
-    // ,[Code]
-    // ,[Description]
-    // ,[Hex Code]
-    // ,[Cyan]
-    // ,[Magenta]
-    // ,[Yellow]
-    // ,[Key]
-    // ,[Order]
-    // ,[Matrix Group]
-    // ,[Matrix Group Value]
-    // ,[Color Group]
-    // ,[Layout Size]
-    // ,[Starting Date]
-    // ,[Ending Date]
-    // ,[New Color]
-    // FROM
-    // [NAV100_BE_Chabert_BC].[dbo].[Stanley and Stella SA$Matrix Entity] t2
 }
