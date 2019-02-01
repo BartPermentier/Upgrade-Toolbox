@@ -169,10 +169,12 @@ table 54000 "BPE Upgrade Table"
         Object.Setfilter("ID", '<>%1', "New Table No.");
         Object.SetRange("Caption", NewTableCaption);
         Object.SetRange(Compiled, true);
+        Object.SetRange(Type, Object.Type::Table);
         if Object.FindLast() then begin
             //Original table found
             "Original Table No." := Object.ID;
             "Original Table Name" := Object.Name;
+            Object.CalcFields(Caption);
             "Original Table Caption" := Object.Caption;
             //Loop through upgrade fields
             UpgradeField.SetRange(NewTableNo, "New Table No.");
