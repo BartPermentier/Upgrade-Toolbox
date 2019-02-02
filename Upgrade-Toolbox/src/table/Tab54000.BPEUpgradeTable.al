@@ -15,6 +15,16 @@ table 54000 "BPE Upgrade Table"
             Caption = 'Original Table No.';
             DataClassification = SystemMetadata;
             TableRelation = AllObjWithCaption."Object ID" where ("Object Type" = filter (Table));
+            trigger OnValidate()
+            var
+                NAVAppObjectMetadata: Record "NAV App Object Metadata";
+            begin
+                NAVAppObjectMetadata.SetRange("App Package ID", AppId);
+                NAVAppObjectMetadata.SetRange("Object Type", "Object Type");
+                NAVAppObjectMetadata.SetRange("Object ID", "New Table No.");
+                NAVAppObjectMetadata.FindFirst();
+                HandleTableExtension(NAVAppObjectMetadata, "Prefix/Sufix", AppId);
+            end;
         }
 
         field(3; "Upgrade Method"; Option)
@@ -33,21 +43,23 @@ table 54000 "BPE Upgrade Table"
             Caption = 'Data Transfered';
             DataClassification = SystemMetadata;
         }
+        field(6; "Object Type"; Option)
+        {
+            Caption = 'Object Type';
+            DataClassification = SystemMetadata;
+            OptionMembers = Table,"Table Extension";
+        }
         field(50; "New Table Caption"; Text[50])
         {
             Caption = 'New Table Caption';
             Editable = false;
             DataClassification = SystemMetadata;
-            // FieldClass = FlowField;
-            // CalcFormula = lookup (AllObjWithCaption."Object Caption" where ("Object ID" = field ("New Table No.")));
         }
         field(51; "Original Table Caption"; Text[50])
         {
             Caption = 'Original Table Caption';
             Editable = false;
             DataClassification = SystemMetadata;
-            // FieldClass = FlowField;
-            // CalcFormula = lookup (AllObjWithCaption."Object Caption" where ("Object ID" = field ("Original Table No.")));
         }
         field(52; "No. of Upgrade Fields"; Integer)
         {
@@ -68,16 +80,12 @@ table 54000 "BPE Upgrade Table"
             Caption = 'New Table Name';
             Editable = false;
             DataClassification = SystemMetadata;
-            // FieldClass = FlowField;
-            // CalcFormula = lookup (AllObjWithCaption."Object Caption" where ("Object ID" = field ("Original Table No.")));
         }
         field(55; "Original Table Name"; Text[50])
         {
             Caption = 'Original Table Name';
             Editable = false;
             DataClassification = SystemMetadata;
-            // FieldClass = FlowField;
-            // CalcFormula = lookup (AllObjWithCaption."Object Name" where ("Object ID" = field ("Original Table No.")));
         }
         field(800; "Prefix/Sufix"; Code[5])
         {
@@ -111,7 +119,7 @@ table 54000 "BPE Upgrade Table"
             ExtensionManagement.GetRecord(NAVApp);
             //Get Prefix/Sufix
 
-            PrefixSufix := CopyStr(ProgressBarMgt.RequestNewValueForAField(Rec, Rec.FieldNo("Prefix/Sufix"), ''), 1, MaxStrLen(PrefixSufix));
+            PrefixSufix := CopyStr(ProgressBarMgt.RequestNewValueForAField(Rec, Rec.FieldNo("Prefix/Sufix"), "Prefix/Sufix"), 1, MaxStrLen(PrefixSufix));
 
             //Get all Tables and tableExtensions
             NAVAppObjectMetadata.SetRange("App Package ID", NAVApp."Package ID");
@@ -143,6 +151,8 @@ table 54000 "BPE Upgrade Table"
         "New Table Name" := NAVAppObjectMetadata."Object Name";
         AppId := NavAppId;
         "Upgrade Method" := "Upgrade Method"::Transfer;
+        "Prefix/Sufix" := PrefixSufix;
+        "Object Type" := "Object Type"::Table;
         if not Insert() then
             Modify();
 
@@ -151,6 +161,7 @@ table 54000 "BPE Upgrade Table"
         AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Table);
         if AllObjWithCaption.FindFirst() then begin
             NewTableCaption := AllObjWithCaption."Object Caption";
+            //If the caption still has his Pre of Suffix then remove it
             if StrPos(NewTableCaption, PrefixSufix) <> 0 then begin
                 NewTableCaption := NewTableCaption.TrimStart(PrefixSufix);
                 NewTableCaption := NewTableCaption.TrimStart('_');
@@ -162,7 +173,7 @@ table 54000 "BPE Upgrade Table"
             "New Table Caption" := AllObjWithCaption."Object Caption";
 
         end;
-
+        //Add all the fields of the new table
         CreateUpgradeFields(UpgradeField, "New Table No.");
 
         //Search Original Table via Caption
@@ -187,7 +198,7 @@ table 54000 "BPE Upgrade Table"
                 NewFieldTable.SetRange("No.", UpgradeField.NewFieldNo);
                 NewFieldTable.FindFirst();
 
-                //Caption
+                //Match New fields and Old fields with their Caption
                 OldFieldTable.SetRange(TableNo, "Original Table No.");
                 OldFieldTable.SetRange("Field Caption", NewFieldTable."Field Caption");
                 if OldFieldTable.FindFirst() then
@@ -218,7 +229,6 @@ table 54000 "BPE Upgrade Table"
     local procedure HandleTableExtension(var NAVAppObjectMetadata: Record "NAV App Object Metadata"; PreOrSufix: Code[5]; NavAppId: Guid);
     var
         NewFieldTable: Record Field;
-        OldFieldTable: Record Field;
         UpgradeField: Record "BPE Upgrade Field";
         AllObjWithCaption: Record AllObjWithCaption;
         TableNo: Integer;
@@ -228,15 +238,24 @@ table 54000 "BPE Upgrade Table"
         UpgradeField.Setrange(NewTableNo, TableNo);
         UpgradeField.DeleteAll();
 
+        //Search for fields in the TableExtension with a Prefix Or Suffix
+        //These are the new fields from our Table Extension
         NewFieldTable.SetRange(TableNo, TableNo);
         NewFieldTable.SetFilter("No.", '>=%1', 50000);
         NewFieldTable.SetFilter(FieldName, '%1|%2', '*' + PreOrSufix, PreOrSufix + '*');
         NewFieldTable.SetRange(Class, NewFieldTable.Class::Normal);
         NewFieldTable.SetRange(Enabled, true);
         if NewFieldTable.FindSet() then begin
+            //Create Upgrade Table
             Init();
             "New Table No." := TableNo;
             "Original Table No." := TableNo;
+            AppId := NavAppId;
+            "Upgrade Method" := "Upgrade Method"::Transfer;
+            "Prefix/Sufix" := PreOrSufix;
+            "Object Type" := "Object Type"::"Table Extension";
+
+            //Get Caption Data
             AllObjWithCaption.SetRange("Object ID", TableNo);
             AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Table);
             AllObjWithCaption.FindFirst();
@@ -244,36 +263,20 @@ table 54000 "BPE Upgrade Table"
             "New Table Name" := AllObjWithCaption."Object Name";
             "Original Table Caption" := AllObjWithCaption."Object Caption";
             "Original Table Name" := AllObjWithCaption."Object Name";
-            AppId := NavAppId;
-            "Upgrade Method" := "Upgrade Method"::Transfer;
+
             if not Insert() then
                 Modify();
-
+            //Create Upgrade Fields
             repeat
+                //For each field in that table create a UpgradeField Entry and try to match with a C/Side field
                 UpgradeField.Init();
                 UpgradeField.NewTableNo := TableNo;
                 UpgradeField.NewFieldNo := NewFieldTable."No.";
                 UpgradeField.OriginalTableNo := TableNo;
-                OldFieldTable.CopyFilters(NewFieldTable);
-                OldFieldTable.SetRange(FieldName);
-                OldFieldTable.SetRange("Field Caption", NewFieldTable."Field Caption");
-                OldFieldTable.SetFilter("No.", '<>%1', NewFieldTable."No.");
-                if OldFieldTable.FindFirst() then
-                    CheckMatches(UpgradeField, OldFieldTable, NewFieldTable)
-                else begin
-                    if StrLen(NewFieldTable."Field Caption") <= 30 then begin
-                        OldFieldTable.SetRange("Field Caption");
-                        OldFieldTable.SetRange(FieldName, NewFieldTable."Field Caption");
-                        if OldFieldTable.FindFirst() then
-                            CheckMatches(UpgradeField, OldFieldTable, NewFieldTable)
-                        else
-                            UpgradeField."Upgrade Method" := UpgradeField."Upgrade Method"::Skip;
-                    end else
-                        UpgradeField."Upgrade Method" := UpgradeField."Upgrade Method"::Skip;
-
-                    OldFieldTable.SetRange(FieldName);
-                end;
-
+                //Match the Caption of the New Field with the Caption of the Old Field
+                if not MatchCaptionWithCaption(UpgradeField, NewFieldTable) then
+                    //Match the Caption of the New Field with the Name of the Old Field
+                    MatchCaptionWithName(UpgradeField, NewFieldTable);
                 if not UpgradeField.Insert() then
                     UpgradeField.Modify();
             until NewFieldTable.Next() = 0;
@@ -281,6 +284,34 @@ table 54000 "BPE Upgrade Table"
 
     end;
     //#endregion HandleTableExtension
+    //#region MatchCaptionWithCaption
+    local procedure MatchCaptionWithCaption(var UpgradeField: Record "BPE Upgrade Field"; var NewFieldTable: Record Field) MatchFound: Boolean;
+    var
+        OldFieldTable: Record Field;
+    begin
+        OldFieldTable.CopyFilters(NewFieldTable);
+        OldFieldTable.SetRange(FieldName);
+        OldFieldTable.SetRange("Field Caption", NewFieldTable."Field Caption");
+        OldFieldTable.SetFilter("No.", '<>%1', NewFieldTable."No.");
+        if OldFieldTable.FindFirst() then
+            CheckMatches(UpgradeField, OldFieldTable, NewFieldTable);
+        exit(UpgradeField."Upgrade Method" = UpgradeField."Upgrade Method"::Transfer);
+    end;
+    //#endregion MatchCaptionWithCaption
+    //#region MatchCaptionWithName
+    local procedure MatchCaptionWithName(var UpgradeField: Record "BPE Upgrade Field"; var NewFieldTable: Record Field) MatchFound: Boolean;
+    var
+        OldFieldTable: Record Field;
+    begin
+        if StrLen(NewFieldTable."Field Caption") > 30 then exit;
+        OldFieldTable.CopyFilters(NewFieldTable);
+        OldFieldTable.SetRange(FieldName, NewFieldTable."Field Caption");
+        OldFieldTable.SetFilter("No.", '<>%1', NewFieldTable."No.");
+        if OldFieldTable.FindFirst() then
+            CheckMatches(UpgradeField, OldFieldTable, NewFieldTable);
+        exit(UpgradeField."Upgrade Method" = UpgradeField."Upgrade Method"::Transfer);
+    end;
+    //#endregion MatchCaptionWithName
     //#region CreateUpgradeFields
     local procedure CreateUpgradeFields(var UpgradeField: Record "BPE Upgrade Field"; NewTableNo: Integer);
     var
@@ -308,7 +339,7 @@ table 54000 "BPE Upgrade Table"
         UpgradeField.OriginalFieldNo := OldFieldTable."No.";
         UpgradeField."Caption Match" := (OldFieldTable."Field Caption" = NewFieldTable."Field Caption") or (OldFieldTable."FieldName" = NewFieldTable."Field Caption");
         //Check Id
-        UpgradeField."Id Match" := OldFieldTable."No." = NewFieldTable."No.";
+        UpgradeField."Id Match" := OldFieldTable."No." = NewFieldTable."No."; //Only usefull for Table Upgrades not Table Extension Upgrades
         //Check Type
         UpgradeField."Type Match" := OldFieldTable."Type" = NewFieldTable."Type";
         //Check Length

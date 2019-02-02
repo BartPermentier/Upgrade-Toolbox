@@ -5,7 +5,7 @@
       <group id="body">
         <trans-unit id="Table 3926941043 - Field 580012239 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
           <source>New Table No.</source>
-          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Developer" annotates="general" priority="2">NLB="Nieuw Tabel Nr."</note>
           <note from="Xliff Generator" annotates="general" priority="3">Table BPE Upgrade Table - Field New Table No. - Property Caption</note>
         </trans-unit>
         <trans-unit id="Table 3926941043 - Field 2816559724 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
