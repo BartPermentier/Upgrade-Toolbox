@@ -68,7 +68,6 @@ page 54000 "BPE Upgrade Table List"
             action(GenerateTable)
             {
                 ApplicationArea = All;
-
                 trigger OnAction()
                 begin
                     GenerateUpgradeTable();
@@ -84,7 +83,6 @@ page 54000 "BPE Upgrade Table List"
                     ProgressBarMgt: Codeunit "BPE Progress Bar Mgt.";
                 begin
                     CurrPage.SetSelectionFilter(UpgradeTable);
-                    //UpgradeTable.SetAutoCalcFields("Original Table Caption", "New Table Caption");
                     UpgradeTable.FindSet();
                     ProgressBarMgt.AddProgressBarParameter(1, 'FromTable');
                     ProgressBarMgt.AddProgressBarParameter(2, 'ToTable');
@@ -105,7 +103,7 @@ page 54000 "BPE Upgrade Table List"
                 Caption = 'Create SQL Statement';
                 trigger OnAction()
                 begin
-                    CreateSqlStatementForRecordSet();
+                    CreateSqlStatementFromRecordSet();
                 end;
             }
         }
