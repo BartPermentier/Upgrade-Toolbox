@@ -27,7 +27,7 @@ table 54001 "BPE Upgrade Field"
         {
             Caption = 'OriginalFieldId';
             DataClassification = SystemMetadata;
-            TableRelation = Field."No." where (TableNo = field (OriginalTableNo));
+            TableRelation = Field."No." where (TableNo = field (OriginalTableNo), Enabled = filter (true));
         }
         field(20; "Upgrade Method"; Option)
         {

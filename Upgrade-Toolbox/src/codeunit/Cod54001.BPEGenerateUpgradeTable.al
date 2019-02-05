@@ -77,6 +77,7 @@ codeunit 54001 "BPE Generate Upgrade Table"
                 UpgradeField.NewTableNo := TableNo;
                 UpgradeField.NewFieldNo := NewFieldTable."No.";
                 UpgradeField.OriginalTableNo := TableNo;
+                UpgradeField."Upgrade Method" := UpgradeField."Upgrade Method"::Skip;
                 //Match the Caption of the New Field with the Caption of the Old Field
                 if not MatchCaptionWithCaption(UpgradeField, NewFieldTable) then
                     //Match the Caption of the New Field with the Name of the Old Field
