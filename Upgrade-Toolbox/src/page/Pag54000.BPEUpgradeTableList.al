@@ -68,6 +68,11 @@ page 54000 "BPE Upgrade Table List"
             action(GenerateTable)
             {
                 ApplicationArea = All;
+                Promoted = true;
+                PromotedCategory = Process;
+                PromotedIsBig = true;
+                Image = AnalysisViewDimension;
+                Caption = 'Generate Upgrade Entries';
                 trigger OnAction()
                 begin
                     GenerateUpgradeTable();
@@ -77,6 +82,11 @@ page 54000 "BPE Upgrade Table List"
             action(TransferDataSelectedEntries)
             {
                 ApplicationArea = all;
+                Promoted = true;
+                PromotedCategory = Process;
+                PromotedIsBig = true;
+                Image = Change;
+                Caption = 'Transfer Data Selected Entries';
                 trigger OnAction()
                 var
                     UpgradeTable: Record "BPE Upgrade Table";
@@ -100,6 +110,10 @@ page 54000 "BPE Upgrade Table List"
             action(CreateSQLStatement)
             {
                 ApplicationArea = All;
+                Promoted = true;
+                PromotedCategory = Process;
+                PromotedIsBig = true;
+                Image = ExtendedDataEntry;
                 Caption = 'Create SQL Statement';
                 trigger OnAction()
                 begin

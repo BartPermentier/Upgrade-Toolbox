@@ -35,7 +35,7 @@ codeunit 54001 "BPE Generate Upgrade Table"
     end;
     //#endregion GenerateUpgradeTable
     //#region HandleTableExtension
-    procedure HandleTableExtension(UpgradeTable: Record "BPE Upgrade Table"; var NAVAppObjectMetadata: Record "NAV App Object Metadata"; PrefixOrSuffix: Code[5]; NavAppId: Guid);
+    procedure HandleTableExtension(var UpgradeTable: Record "BPE Upgrade Table"; var NAVAppObjectMetadata: Record "NAV App Object Metadata"; PrefixOrSuffix: Code[5]; NavAppId: Guid);
     var
         NewFieldTable: Record Field;
         UpgradeField: Record "BPE Upgrade Field";
@@ -90,7 +90,7 @@ codeunit 54001 "BPE Generate Upgrade Table"
     //#endregion HandleTableExtension
 
     //#region HandleTable
-    procedure HandleTable(UpgradeTable: Record "BPE Upgrade Table"; var NAVAppObjectMetadata: Record "NAV App Object Metadata"; PrefixOrSuffix: Code[5]; NavAppId: Guid);
+    procedure HandleTable(var UpgradeTable: Record "BPE Upgrade Table"; var NAVAppObjectMetadata: Record "NAV App Object Metadata"; PrefixOrSuffix: Code[5]; NavAppId: Guid);
     var
         AllObjWithCaption: Record AllObjWithCaption;
         OldFieldTable: Record Field;
