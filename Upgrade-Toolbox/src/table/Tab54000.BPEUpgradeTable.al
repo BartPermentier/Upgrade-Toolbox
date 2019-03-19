@@ -181,9 +181,14 @@ table 54000 "BPE Upgrade Table"
     //#region GetNoOfDatabaseRecordsNewTable
     procedure GetNoOfDatabaseRecordsNewTable(): Integer;
     var
+        AllObjWithCaption: Record AllObjWithCaption;
         RecRef: RecordRef;
     begin
         if "New Table No." = 0 then exit;
+        //check if the table still exists or we get an error
+        AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Table);
+        AllObjWithCaption.SetRange("Object ID", "New Table No.");
+        if not AllObjWithCaption.FindFirst() then exit;
         RecRef.Open("New Table No.");
         exit(RecRef.Count());
     end;

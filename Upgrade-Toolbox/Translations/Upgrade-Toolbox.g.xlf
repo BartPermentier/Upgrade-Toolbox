@@ -209,7 +209,7 @@
           <note from="Xliff Generator" annotates="general" priority="3">Page BPE Upgrade Table List - Action TransferDataSelectedEntries - Property Caption</note>
         </trans-unit>
         <trans-unit id="Page 3414821661 - Action 4059027073 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Create SQL Statement</source>
+          <source>Create SQL Statement Selected Entries</source>
           <note from="Developer" annotates="general" priority="2"></note>
           <note from="Xliff Generator" annotates="general" priority="3">Page BPE Upgrade Table List - Action CreateSQLStatement - Property Caption</note>
         </trans-unit>

@@ -114,10 +114,13 @@ page 54000 "BPE Upgrade Table List"
                 PromotedCategory = Process;
                 PromotedIsBig = true;
                 Image = ExtendedDataEntry;
-                Caption = 'Create SQL Statement';
+                Caption = 'Create SQL Statement Selected Entries';
                 trigger OnAction()
+                var
+                    UpgradeTable: Record "BPE Upgrade Table";
                 begin
-                    CreateSqlStatementFromRecordSet();
+                    CurrPage.SetSelectionFilter(UpgradeTable);
+                    UpgradeTable.CreateSqlStatementFromRecordSet();
                 end;
             }
         }
