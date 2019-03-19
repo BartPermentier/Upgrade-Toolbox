@@ -391,6 +391,7 @@ codeunit 54000 "BPE Progress Bar Mgt."
     end;
 
     //#endregion Progressbar
+    
     //#region RequestNewValueForAField
     procedure RequestNewValueForAField(RecordVariant: Variant; FieldNo: Integer; InitialValue: Text) Result: Text
     var
@@ -423,6 +424,7 @@ codeunit 54000 "BPE Progress Bar Mgt."
         EXIT(GetFiltersText);
     end;
     //#endregion RequestNewValueForAField
+    
     var
         ProgreeBarMgt: Codeunit "BPE Progress Bar Mgt.";
         StopWatchRunning: Boolean;

@@ -58,7 +58,7 @@ codeunit 54003 "BPE Create Sql Query"
                     if IsTableExtension then begin
                         SqlScriptOutstream.WriteText('UPDATE');
                         SqlScriptOutstream.WriteText(format(cr) + format(lf));
-                        From := '[' + DatabaseName + '].[dbo].[' + Company.Name + '$' + ReplaceIlligalSqlCharacters(UpgradeTable."New Table Name") + '$' + delchr(delchr(UpgradeTable.AppId, '<', '{'), '>', '}') + ']'; //TableExtension
+                        From := '[' + DatabaseName + '].[dbo].[' + Company.Name + '$' + ReplaceIlligalSqlCharacters(UpgradeTable."New Table Name") + '$' + delchr(delchr(LowerCase(UpgradeTable.AppId), '<', '{'), '>', '}') + ']'; //TableExtension
                         SqlScriptOutstream.WriteText(From);
                         SqlScriptOutstream.WriteText(format(cr) + format(lf));
                         SqlScriptOutstream.WriteText('SET');
@@ -97,7 +97,7 @@ codeunit 54003 "BPE Create Sql Query"
                     end else begin //not a table extension
                         SqlScriptOutstream.WriteText('INSERT INTO');
                         SqlScriptOutstream.WriteText(format(cr) + format(lf));
-                        InsertInto := '[' + DatabaseName + '].[dbo].[' + Company.Name + '$' + ReplaceIlligalSqlCharacters(UpgradeTable."New Table Name") + '$' + delchr(delchr(UpgradeTable.AppId, '<', '{'), '>', '}') + ']'; //TableExtension
+                        InsertInto := '[' + DatabaseName + '].[dbo].[' + Company.Name + '$' + ReplaceIlligalSqlCharacters(UpgradeTable."New Table Name") + '$' + delchr(delchr(LowerCase(UpgradeTable.AppId), '<', '{'), '>', '}') + ']'; //TableExtension
                         SqlScriptOutstream.WriteText(InsertInto);
                         SqlScriptOutstream.WriteText(format(cr) + format(lf));
                         SqlScriptOutstream.WriteText('(');

@@ -5,7 +5,7 @@
       <group id="body">
         <trans-unit id="Table 3926941043 - Field 580012239 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
           <source>New Table No.</source>
-          <note from="Developer" annotates="general" priority="2">NLB="Nieuw Tabel Nr."</note>
+          <note from="Developer" annotates="general" priority="2"></note>
           <note from="Xliff Generator" annotates="general" priority="3">Table BPE Upgrade Table - Field New Table No. - Property Caption</note>
         </trans-unit>
         <trans-unit id="Table 3926941043 - Field 2816559724 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
@@ -27,6 +27,11 @@
           <source>Data Transfered</source>
           <note from="Developer" annotates="general" priority="2"></note>
           <note from="Xliff Generator" annotates="general" priority="3">Table BPE Upgrade Table - Field Data Transfered - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 3926941043 - Field 1085746399 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Object Type</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table BPE Upgrade Table - Field Object Type - Property Caption</note>
         </trans-unit>
         <trans-unit id="Table 3926941043 - Field 1203480432 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
           <source>New Table Caption</source>
@@ -58,10 +63,10 @@
           <note from="Developer" annotates="general" priority="2"></note>
           <note from="Xliff Generator" annotates="general" priority="3">Table BPE Upgrade Table - Field Original Table Name - Property Caption</note>
         </trans-unit>
-        <trans-unit id="Table 3926941043 - Field 2190160578 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+        <trans-unit id="Table 3926941043 - Field 1803470148 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
           <source>Prefix/Sufix</source>
           <note from="Developer" annotates="general" priority="2"></note>
-          <note from="Xliff Generator" annotates="general" priority="3">Table BPE Upgrade Table - Field Prefix/Sufix - Property Caption</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table BPE Upgrade Table - Field Prefix/Suffix - Property Caption</note>
         </trans-unit>
         <trans-unit id="Table 4045694743 - Field 392230637 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
           <source>NewTableID</source>
@@ -192,6 +197,16 @@
           <source>No. of Database Records Original Table</source>
           <note from="Developer" annotates="general" priority="2"></note>
           <note from="Xliff Generator" annotates="general" priority="3">Page BPE Upgrade Table List - Control NoOfDatabaseRecordsOriginalTable - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 3414821661 - Action 2937716663 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Generate Upgrade Entries</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page BPE Upgrade Table List - Action GenerateTable - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 3414821661 - Action 4184649140 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Transfer Data Selected Entries</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page BPE Upgrade Table List - Action TransferDataSelectedEntries - Property Caption</note>
         </trans-unit>
         <trans-unit id="Page 3414821661 - Action 4059027073 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
           <source>Create SQL Statement</source>
