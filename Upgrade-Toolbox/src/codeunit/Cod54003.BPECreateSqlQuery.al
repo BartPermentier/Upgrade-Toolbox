@@ -8,12 +8,14 @@ codeunit 54003 "BPE Create Sql Query"
         UpgradeField: Record "BPE Upgrade Field";
         FileManagement: Codeunit "File Management";
         Companies: Page Companies;
+        FromDatabaseRequestPage: Page "BPE Request Page";
         RecRef: RecordRef;
         FldRef: FieldRef;
         SqlScriptOutstream: OutStream;
         SqlScriptFile: File;
         PrimaryKeyRef: KeyRef;
         DatabaseName: Text;
+        SourceDatabaseName: Text[250];
         FullFilePath: Text;
         From: Text;
         InsertInto: Text;
@@ -30,6 +32,16 @@ codeunit 54003 "BPE Create Sql Query"
             exit;
         Companies.GetSelectedCompanies(Company);
 
+        //Ask which Database
+        ActiveSession.SetRange("Session ID", SessionId());
+        ActiveSession.FindFirst();
+        DatabaseName := ActiveSession."Database Name";
+        SourceDatabaseName := ActiveSession."Database Name";
+        FromDatabaseRequestPage.LookupMode(false);
+        FromDatabaseRequestPage.SetFromDatabase(SourceDatabaseName);
+        FromDatabaseRequestPage.RunModal();
+        SourceDatabaseName := FromDatabaseRequestPage.ReturnFromDatabase();
+
         //Ask File Location
         FullFilePath := FileManagement.SaveFileDialog('Create SQL Statement', '', '(Sql files)|*.sql');
         SqlScriptFile.Create(FullFilePath);
@@ -42,9 +54,6 @@ codeunit 54003 "BPE Create Sql Query"
         UpgradeTable.SetRange("Upgrade Method", UpgradeTable."Upgrade Method"::Transfer);
         cr := 13;
         lf := 10;
-        ActiveSession.SetRange("Session ID", SessionId());
-        ActiveSession.FindFirst();
-        DatabaseName := ActiveSession."Database Name";
 
         //Start
         Company.FindSet();
@@ -77,7 +86,7 @@ codeunit 54003 "BPE Create Sql Query"
                         SqlScriptOutstream.WriteText(format(cr) + format(lf));
                         SqlScriptOutstream.WriteText('INNER JOIN');
                         SqlScriptOutstream.WriteText(format(cr) + format(lf));
-                        SqlScriptOutstream.WriteText('[' + DatabaseName + '].[dbo].[' + Company.Name + '$' + ReplaceIlligalSqlCharacters(UpgradeTable."Original Table Name") + ']' + ' t2');
+                        SqlScriptOutstream.WriteText('[' + SourceDatabaseName + '].[dbo].[' + Company.Name + '$' + ReplaceIlligalSqlCharacters(UpgradeTable."Original Table Name") + ']' + ' t2');
                         SqlScriptOutstream.WriteText(format(cr) + format(lf));
                         SqlScriptOutstream.WriteText('ON');
                         SqlScriptOutstream.WriteText(format(cr) + format(lf));
@@ -126,7 +135,7 @@ codeunit 54003 "BPE Create Sql Query"
                         SqlScriptOutstream.WriteText(format(cr) + format(lf));
                         SqlScriptOutstream.WriteText('FROM');
                         SqlScriptOutstream.WriteText(format(cr) + format(lf));
-                        SqlScriptOutstream.WriteText('[' + DatabaseName + '].[dbo].[' + Company.Name + '$' + ReplaceIlligalSqlCharacters(UpgradeTable."Original Table Name") + ']' + ' t');
+                        SqlScriptOutstream.WriteText('[' + SourceDatabaseName + '].[dbo].[' + Company.Name + '$' + ReplaceIlligalSqlCharacters(UpgradeTable."Original Table Name") + ']' + ' t');
                         SqlScriptOutstream.WriteText(format(cr) + format(lf));
                     end; //end table or tableextension
             until UpgradeTable.Next() = 0;

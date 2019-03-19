@@ -148,6 +148,16 @@
           <note from="Developer" annotates="general" priority="2"></note>
           <note from="Xliff Generator" annotates="general" priority="3">Table BPE Upgrade Field - Field Original Field Name - Property Caption</note>
         </trans-unit>
+        <trans-unit id="Table 3102875131 - Field 2686962215 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>id</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table BPE Temp Request Page Values - Field id - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Table 3102875131 - Field 3432650112 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>From Database Name</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Table BPE Temp Request Page Values - Field From Database Name - Property Caption</note>
+        </trans-unit>
         <trans-unit id="Codeunit 3546972413 - Method 862804479 - NamedType 3222872843" size-unit="char" translate="yes" xml:space="preserve">
           <source>Invalid Encapsulation Placeholder index</source>
           <note from="Developer" annotates="general" priority="2"></note>
@@ -209,7 +219,7 @@
           <note from="Xliff Generator" annotates="general" priority="3">Page BPE Upgrade Table List - Action TransferDataSelectedEntries - Property Caption</note>
         </trans-unit>
         <trans-unit id="Page 3414821661 - Action 4059027073 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Create SQL Statement Selected Entries</source>
+          <source>Create Transfer SQL Statement Selected Entries</source>
           <note from="Developer" annotates="general" priority="2"></note>
           <note from="Xliff Generator" annotates="general" priority="3">Page BPE Upgrade Table List - Action CreateSQLStatement - Property Caption</note>
         </trans-unit>
@@ -217,6 +227,11 @@
           <source>Upgrade Fields List</source>
           <note from="Developer" annotates="general" priority="2"></note>
           <note from="Xliff Generator" annotates="general" priority="3">Page BPE Upgrade Fields List - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="Page 457804391 - Control 4262287933 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Take data from which database?</source>
+          <note from="Developer" annotates="general" priority="2"></note>
+          <note from="Xliff Generator" annotates="general" priority="3">Page BPE Request Page - Control FromDatabase - Property Caption</note>
         </trans-unit>
       </group>
     </body>
